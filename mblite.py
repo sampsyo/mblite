@@ -65,6 +65,11 @@ def convert_createindices(fh):
     for line in fh:
         if line.startswith('\\'):
             continue
+        elif line.startswith("CREATE "):
+            if 'lower(' in line:
+                # SQLite doesn't support functions in index columns.
+                continue
+            yield line
         else:
             yield line
 
