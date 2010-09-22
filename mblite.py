@@ -3,7 +3,9 @@ import sys
 import re
 import sqlite3
 import os
+import subprocess
 
+SQLITE3 = 'sqlite3'
 CREATE_TABLES_SQL = 'CreateTables.sql'
 OUT_DB = 'mblite.db'
 SKIP_TABLES = (
@@ -62,42 +64,18 @@ def convert_createtables(fh):
                 constraints = []
             yield line
 
-def convert_dump(fh, table):
-    for line in fh:
-        line = line.strip()
-        values = line.split('\t')
-        exprs = []
-        for value in values:
-            if value == '\\N':
-                exprs.append('null')
-            else:
-                expr = None
-                
-                # Is the value an integer?
-                try:
-                    int(value)
-                except ValueError:
-                    pass
-                else:
-                    expr = value
-                
-                if expr is None:
-                    # Is the value a float?
-                    if value.lower() not in ('infinity', 'nan'):
-                        try:
-                            float(value)                    
-                        except ValueError:
-                            pass
-                        else:
-                            expr = value
-                
-                if expr is None:
-                    # Not a number. Treat as text.
-                    expr = value.replace('\\', '\\\\').replace("'", "''")
-                    expr = "'" + expr + "'"
-                    
-                exprs.append(expr)
-        yield 'INSERT INTO %s VALUES (%s);\n' % (table, ', '.join(exprs))
+def import_dump(dumpfn, dbfn):
+    table = os.path.basename(dumpfn)
+    sql = [
+        '.separator "\\t"',
+        ".import '%s' %s" % (dumpfn.replace("'", "''"), table),
+    ]
+    proc = subprocess.Popen((SQLITE3, dbfn), stdin=subprocess.PIPE)
+    out, err = proc.communicate(input='\n'.join(sql))
+    if out:
+        sys.stdout.write(out)
+    if err:
+        sys.stderr.write(err)
 
 if __name__ == '__main__':
     mode = sys.argv[1]
@@ -110,26 +88,12 @@ if __name__ == '__main__':
         db.executescript(script)
         db.commit()
         db.close()
-    elif mode == '--undump':
-        fn = os.path.expanduser(sys.argv[2])
-        table = os.path.basename(fn)
-        for line in convert_dump(open(fn), table):
-            sys.stdout.write(line)
     elif mode == '--import':
-        db = sqlite3.connect(OUT_DB)
         dumpdir = os.path.expanduser(sys.argv[2])
         for basename in os.listdir(dumpdir):
             if not basename.startswith('.') and basename not in SKIP_TABLES:
                 fn = os.path.join(dumpdir, basename)
                 print 'importing: %s' % basename
-                for line in convert_dump(open(fn), basename):
-                    try:
-                        db.execute(line)
-                    except sqlite3.OperationalError, exc:
-                        print 'sqlite error on line: %s' %  repr(line)
-                        print exc
-                        sys.exit(1)
-                db.commit()
-        db.close()
+                import_dump(fn, OUT_DB)
     else:
         print 'unknown mode'

@@ -43,8 +43,6 @@ The Future
 
 Things to do next:
 
-  * Use `executemany` and shorter transactions to make the import process go
-    faster.
   * Database indices.
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
