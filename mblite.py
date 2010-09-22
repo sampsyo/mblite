@@ -69,6 +69,9 @@ def convert_createindices(fh):
             if 'lower(' in line:
                 # SQLite doesn't support functions in index columns.
                 continue
+            if 'artistalias_nameindex' in line:
+                # Strange error: the artistalias.name index is not unique.
+                line = line.replace('UNIQUE ', '')
             yield line
         else:
             yield line
