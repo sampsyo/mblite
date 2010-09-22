@@ -8,10 +8,6 @@ import subprocess
 SQLITE3 = 'sqlite3'
 CREATE_TABLES_SQL = 'CreateTables.sql'
 OUT_DB = 'mblite.db'
-SKIP_TABLES = (
-    'clientversion', # just causes problems
-    'replication_control',
-)
 
 def convert_createtables(fh):
     fields = []
@@ -92,7 +88,7 @@ if __name__ == '__main__':
     elif mode == '--import':
         dumpdir = os.path.expanduser(sys.argv[2])
         for basename in os.listdir(dumpdir):
-            if not basename.startswith('.') and basename not in SKIP_TABLES:
+            if not basename.startswith('.'):
                 fn = os.path.join(dumpdir, basename)
                 print 'importing: %s' % basename
                 import_dump(fn, OUT_DB)
