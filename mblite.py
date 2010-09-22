@@ -68,6 +68,7 @@ def import_dump(dumpfn, dbfn):
     table = os.path.basename(dumpfn)
     sql = [
         '.separator "\\t"',
+        'PRAGMA synchronous = OFF;',
         ".import '%s' %s" % (dumpfn.replace("'", "''"), table),
     ]
     proc = subprocess.Popen((SQLITE3, dbfn), stdin=subprocess.PIPE)
