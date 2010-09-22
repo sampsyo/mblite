@@ -27,14 +27,15 @@ the horse's mouth][mbdownload]. Then run these commands:
 
     $ ./mblite.py --init
     $ ./mblite.py --import /path/to/mbdump
+    $ ./mblite.py --index
 
 Supply the path to the PostgreSQL data dump directory as the argument to the
 second command.
 
 After a good long while, this will create a database called `mblite.db`
 containing a full copy of the MusicBrainz snapshot. When I ran this most
-recently, it took a few hours and the database file ended up about 2 GB in
-size.
+recently, the import took a few hours and the database file ended up about
+2 GB in size.
 
 [mbdownload]: http://wiki.musicbrainz.org/Database_Download
 
@@ -43,13 +44,13 @@ The Future
 
 Things to do next:
 
-  * Database indices.
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
     database as a backend.
   * Explore using SQLite's full-text indexing to support Lucene-like queries.
   * Script for automatically fetching and importing the latest snapshot.
   * Import boolean columns correctly.
+  * Programmatically download SQL files from MusicBrainz subversion.
 
 Credits
 -------

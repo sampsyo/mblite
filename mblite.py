@@ -7,6 +7,7 @@ import subprocess
 
 SQLITE3 = 'sqlite3'
 CREATE_TABLES_SQL = 'CreateTables.sql'
+CREATE_INDICES_SQL = 'CreateIndexes.sql'
 OUT_DB = 'mblite.db'
 
 def convert_createtables(fh):
@@ -60,6 +61,13 @@ def convert_createtables(fh):
                 constraints = []
             yield line
 
+def convert_createindices(fh):
+    for line in fh:
+        if line.startswith('\\'):
+            continue
+        else:
+            yield line
+
 def import_dump(dumpfn, dbfn):
     table = os.path.basename(dumpfn)
     sql = [
@@ -79,6 +87,8 @@ if __name__ == '__main__':
     if mode == '--schema':
         for line in convert_createtables(open(CREATE_TABLES_SQL)):
             sys.stdout.write(line)
+        for line in convert_createindices(open(CREATE_INDICES_SQL)):
+            sys.stdout.write(line)
     elif mode == '--init':
         script = ''.join(convert_createtables(open(CREATE_TABLES_SQL)))
         db = sqlite3.connect(OUT_DB)
@@ -92,5 +102,11 @@ if __name__ == '__main__':
                 fn = os.path.join(dumpdir, basename)
                 print 'importing: %s' % basename
                 import_dump(fn, OUT_DB)
+    elif mode == '--index':
+        script = ''.join(convert_createindices(open(CREATE_INDICES_SQL)))
+        db = sqlite3.connect(OUT_DB)
+        db.executescript(script)
+        db.commit()
+        db.close()
     else:
         print 'unknown mode'
