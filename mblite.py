@@ -43,7 +43,7 @@ def convert_createtables(fh):
             elif 'timestamp' in kind or 'date' in kind:
                 newkind = 'INTEGER' #???
             elif 'bool' in kind:
-                newkind = 'INTEGER'
+                newkind = 'BOOLEAN' # == integer
             elif 'real' in kind:
                 newkind = 'REAL'
             else:
@@ -93,13 +93,17 @@ def import_dump(dumpfn, dbfn):
     if err:
         sys.stderr.write(err)
     
-    # Now fix up the data. Replace \N marker with null.
+    # Now fix up the data. Replace \N marker with null; t and f with
+    # 1 and 0.
     db = sqlite3.connect(dbfn)
     c = db.execute('PRAGMA table_info(%s)' % table)
-    fields = [row[1] for row in c]
-    for field in fields:
+    fields = [row[1:3] for row in c]
+    for field, kind in fields:
         db.execute("UPDATE %s SET %s=NULL WHERE %s='\\N';" %
                    (table, field, field))
+        if kind == 'BOOLEAN':
+            db.execute("UPDATE %s SET %s=(%s is 't');" %
+                       (table, field, field))
     db.commit()
 
 if __name__ == '__main__':

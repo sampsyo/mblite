@@ -49,7 +49,6 @@ Things to do next:
     database as a backend.
   * Explore using SQLite's full-text indexing to support Lucene-like queries.
   * Script for automatically fetching and importing the latest snapshot.
-  * Import boolean columns correctly.
   * Programmatically download SQL files from MusicBrainz subversion.
 
 Credits
