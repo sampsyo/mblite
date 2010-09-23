@@ -30,7 +30,7 @@ the horse's mouth][mbdownload]. Then run these commands:
     $ ./mblite.py --index
 
 Supply the path to the PostgreSQL data dump directory as the argument to the
-second command.
+second command. There's also a `create.sh` script that automates this process.
 
 After a good long while, this will create a database called `mblite.db`
 containing a full copy of the MusicBrainz snapshot. When I ran this most
