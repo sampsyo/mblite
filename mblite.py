@@ -56,7 +56,9 @@ def convert_createtables(fh):
                 continue
             elif line.startswith(')'):
                 # Yield all the table elements.
-                yield ',\n'.join(fields + constraints) + '\n'
+                # Currently, constraints are dropped for speed because
+                # the DB is supposed to be used in a read-only way anyway.
+                yield ',\n'.join(fields) + '\n'
                 fields = []
                 constraints = []
             yield line
@@ -77,6 +79,7 @@ def convert_createindices(fh):
             yield line
 
 def import_dump(dumpfn, dbfn):
+    # Run the CLI .import command to actually import the data.
     table = os.path.basename(dumpfn)
     sql = [
         '.separator "\\t"',
@@ -89,6 +92,15 @@ def import_dump(dumpfn, dbfn):
         sys.stdout.write(out)
     if err:
         sys.stderr.write(err)
+    
+    # Now fix up the data. Replace \N marker with null.
+    db = sqlite3.connect(dbfn)
+    c = db.execute('PRAGMA table_info(%s)' % table)
+    fields = [row[1] for row in c]
+    for field in fields:
+        db.execute("UPDATE %s SET %s=NULL WHERE %s='\\N';" %
+                   (table, field, field))
+    db.commit()
 
 if __name__ == '__main__':
     mode = sys.argv[1]
