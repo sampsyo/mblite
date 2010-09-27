@@ -34,8 +34,9 @@ second command. There's also a `create.sh` script that automates this process.
 
 After a good long while, this will create a database called `mblite.db`
 containing a full copy of the MusicBrainz snapshot. When I ran this most
-recently, the import took a few hours and the database file ended up about
-2 GB in size.
+recently on my aging Core 2 Duo, the import took about an hour and a half
+and created a 2 GB database. Indexing the DB took another 7 hours (!) and
+grew the database to about 4.4 GB.
 
 [mbdownload]: http://wiki.musicbrainz.org/Database_Download
 
