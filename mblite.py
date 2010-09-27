@@ -4,11 +4,15 @@ import re
 import sqlite3
 import os
 import subprocess
+import urllib
 
 SQLITE3 = 'sqlite3'
-CREATE_TABLES_SQL = 'CreateTables.sql'
-CREATE_INDICES_SQL = 'CreateIndexes.sql'
 OUT_DB = 'mblite.db'
+TRAC_URL = 'http://bugs.musicbrainz.org/browser/mb_server/branches/' \
+           'RELEASE_20090524-BRANCH/'
+TRAC_SUFFIX = '?format=raw'
+CREATE_TABLES_PATH = 'admin/sql/CreateTables.sql'
+CREATE_INDICES_PATH = 'admin/sql/CreateIndexes.sql'
 
 def convert_createtables(fh):
     fields = []
@@ -108,13 +112,15 @@ def import_dump(dumpfn, dbfn):
 
 if __name__ == '__main__':
     mode = sys.argv[1]
+    tables_sql = os.path.basename(CREATE_TABLES_PATH)
+    indices_sql = os.path.basename(CREATE_INDICES_PATH)
     if mode == '--schema':
-        for line in convert_createtables(open(CREATE_TABLES_SQL)):
+        for line in convert_createtables(open(tables_sql)):
             sys.stdout.write(line)
-        for line in convert_createindices(open(CREATE_INDICES_SQL)):
+        for line in convert_createindices(open(indices_sql)):
             sys.stdout.write(line)
     elif mode == '--init':
-        script = ''.join(convert_createtables(open(CREATE_TABLES_SQL)))
+        script = ''.join(convert_createtables(open(tables_sql)))
         db = sqlite3.connect(OUT_DB)
         db.executescript(script)
         db.commit()
@@ -127,10 +133,15 @@ if __name__ == '__main__':
                 print 'importing: %s' % basename
                 import_dump(fn, OUT_DB)
     elif mode == '--index':
-        script = ''.join(convert_createindices(open(CREATE_INDICES_SQL)))
+        script = ''.join(convert_createindices(open(indices_sql)))
         db = sqlite3.connect(OUT_DB)
         db.executescript(script)
         db.commit()
         db.close()
+    elif mode == '--fetch-sql':
+        for path in (CREATE_TABLES_PATH, CREATE_INDICES_PATH):
+            fn = os.path.basename(path)
+            url = TRAC_URL + path + TRAC_SUFFIX
+            urllib.urlretrieve(url, fn)
     else:
         print 'unknown mode'

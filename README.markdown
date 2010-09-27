@@ -25,6 +25,7 @@ Creating a Database
 To create an SQLite MusicBrainz database, first fetch a recent `mbdump` [from
 the horse's mouth][mbdownload]. Then run these commands:
 
+    $ ./mblite.py --fetch-sql
     $ ./mblite.py --init
     $ ./mblite.py --import /path/to/mbdump
     $ ./mblite.py --index
@@ -49,8 +50,7 @@ Things to do next:
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
     database as a backend.
   * Explore using SQLite's full-text indexing to support Lucene-like queries.
-  * Script for automatically fetching and importing the latest snapshot.
-  * Programmatically download SQL files from MusicBrainz subversion.
+  * Automatically fetch the latest snapshot.
 
 Credits
 -------

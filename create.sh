@@ -10,6 +10,10 @@ dbfile=mblite.db
 script=./mblite.py
 mbdump=$1
 
+echo `date` Fetching SQL files from Subversion.
+$script --fetch-sql
+ls -l *.sql
+
 echo `date` Removing any previous database.
 rm -f $dbfile
 
