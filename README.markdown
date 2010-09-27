@@ -46,6 +46,7 @@ The Future
 
 Things to do next:
 
+  * Update for NGS.
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
     database as a backend.
