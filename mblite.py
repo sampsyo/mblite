@@ -8,9 +8,7 @@ import urllib
 
 SQLITE3 = 'sqlite3'
 OUT_DB = 'mblite.db'
-TRAC_URL = 'http://bugs.musicbrainz.org/browser/mb_server/branches/' \
-           'RELEASE_20090524-BRANCH/'
-TRAC_SUFFIX = '?format=raw'
+GIT_URL = 'https://github.com/metabrainz/musicbrainz-server/raw/master/'
 CREATE_TABLES_PATH = 'admin/sql/CreateTables.sql'
 CREATE_INDICES_PATH = 'admin/sql/CreateIndexes.sql'
 
@@ -40,7 +38,7 @@ def convert_createtables(fh):
             kind = kind.lower()
             if name == 'id' or 'serial' in kind:
                 newkind = 'INTEGER PRIMARY KEY'
-            elif 'text' in kind or 'char' in kind:
+            elif 'text' in kind or 'char' in kind or 'uuid' in kind:
                 newkind = 'TEXT'
             elif 'int' in kind:
                 newkind = 'INTEGER'
@@ -50,6 +48,8 @@ def convert_createtables(fh):
                 newkind = 'BOOLEAN' # == integer
             elif 'real' in kind:
                 newkind = 'REAL'
+            elif 'cube' in kind:
+                newkind = 'TEXT' # (actually a vector)
             else:
                 raise ValueError('unknown kind in %s' % repr(line))
             fields.append('    %s %s' % (name, newkind))
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     elif mode == '--fetch-sql':
         for path in (CREATE_TABLES_PATH, CREATE_INDICES_PATH):
             fn = os.path.basename(path)
-            url = TRAC_URL + path + TRAC_SUFFIX
+            url = GIT_URL + path
             urllib.urlretrieve(url, fn)
     else:
         print 'unknown mode'

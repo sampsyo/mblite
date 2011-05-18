@@ -10,7 +10,7 @@ dbfile=mblite.db
 script=./mblite.py
 mbdump=$1
 
-echo `date` Fetching SQL files from Subversion.
+echo `date` Fetching SQL files from git.
 $script --fetch-sql
 ls -l *.sql
 

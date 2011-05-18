@@ -39,14 +39,13 @@ recently on my aging Core 2 Duo, the import took about an hour and a half
 and created a 2 GB database. Indexing the DB took another 7 hours (!) and
 grew the database to about 4.4 GB.
 
-[mbdownload]: http://wiki.musicbrainz.org/Database_Download
+[mbdownload]: http://ftp.musicbrainz.org/pub/musicbrainz/data/fullexport/
 
 The Future
 ----------
 
 Things to do next:
 
-  * Update for NGS.
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
     database as a backend.
