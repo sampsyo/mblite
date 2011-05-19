@@ -68,19 +68,36 @@ def convert_createtables(fh):
             yield line
 
 def convert_createindices(fh):
+    """Given a file-like object referring to an index creation SQL file,
+    yields a list of SQLite-valid commands in that file.
+    """
+    lines = []
     for line in fh:
-        if line.startswith('\\'):
+        # Strip comments.
+        line = re.sub(r'--.*', '', line).strip()
+
+        if line.startswith('\\') or not line:
             continue
         elif line.startswith("CREATE "):
-            if 'lower(' in line:
+            if 'lower(' in line.lower() or 'page_index(' in line \
+                    or 'musicbrainz_collate(' in line:
                 # SQLite doesn't support functions in index columns.
                 continue
             if 'artistalias_nameindex' in line:
                 # Strange error: the artistalias.name index is not unique.
                 line = line.replace('UNIQUE ', '')
-            yield line
+            if 'USING' in line:
+                # Ignore custom index types.
+                line = re.sub(r'USING\s+\w+', '', line)
+            lines.append(line)
         else:
-            yield line
+            lines.append(line)
+
+    # Split into commands.
+    for command in ''.join(lines).split(';'):
+        command = command.strip()
+        if command and command.lower() not in ('begin', 'commit'):
+            yield command
 
 def import_dump(dumpfn, dbfn):
     # Run the CLI .import command to actually import the data.
@@ -117,8 +134,8 @@ if __name__ == '__main__':
     if mode == '--schema':
         for line in convert_createtables(open(tables_sql)):
             sys.stdout.write(line)
-        for line in convert_createindices(open(indices_sql)):
-            sys.stdout.write(line)
+        for command in convert_createindices(open(indices_sql)):
+            print command + ';'
     elif mode == '--init':
         script = ''.join(convert_createtables(open(tables_sql)))
         db = sqlite3.connect(OUT_DB)
@@ -133,9 +150,15 @@ if __name__ == '__main__':
                 print 'importing: %s' % basename
                 import_dump(fn, OUT_DB)
     elif mode == '--index':
-        script = ''.join(convert_createindices(open(indices_sql)))
+        commands = convert_createindices(open(indices_sql))
         db = sqlite3.connect(OUT_DB)
-        db.executescript(script)
+        for command in commands:
+            name_match = re.search(r' INDEX\s+(\S*)', command)
+            if name_match:
+                print 'indexing: %s' % name_match.group(1)
+            else:
+                print 'executing: %s' % command
+            db.execute(command)
         db.commit()
         db.close()
     elif mode == '--fetch-sql':

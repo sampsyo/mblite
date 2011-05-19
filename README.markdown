@@ -35,9 +35,9 @@ second command. There's also a `create.sh` script that automates this process.
 
 After a good long while, this will create a database called `mblite.db`
 containing a full copy of the MusicBrainz snapshot. When I ran this most
-recently on my aging Core 2 Duo, the import took about an hour and a half
-and created a 2 GB database. Indexing the DB took another 7 hours (!) and
-grew the database to about 4.4 GB.
+recently on my aging Core 2 Duo, the import took about 30 minutes
+and created a 3 GB database. Indexing the DB took another 7 hours (!) and
+grew the database to about 5.6 GB.
 
 [mbdownload]: http://ftp.musicbrainz.org/pub/musicbrainz/data/fullexport/
 
@@ -46,10 +46,11 @@ The Future
 
 Things to do next:
 
+  * Explore using SQLite's full-text indexing to support Lucene-like queries.
+  * Use replication packets to update the database.
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
-    database as a backend.
-  * Explore using SQLite's full-text indexing to support Lucene-like queries.
+    database as a backend?
   * Automatically fetch the latest snapshot.
 
 Credits
