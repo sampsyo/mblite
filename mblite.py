@@ -145,7 +145,7 @@ def download_url(url, filename):
 
 def fetch_data():
     # Download the mbdump archive.
-    dirname = requests.get(DUMP_URL + DUMP_LATEST_FILE).text
+    dirname = requests.get(DUMP_URL + DUMP_LATEST_FILE).text.strip()
     dump_url = DUMP_URL + dirname + '/' + DUMP_FILE
     print('downloading:', dump_url)
     download_url(dump_url, DUMP_FILE)
