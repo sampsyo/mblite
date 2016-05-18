@@ -4,7 +4,7 @@ import re
 import sqlite3
 import os
 import subprocess
-import urllib
+import requests
 
 SQLITE3 = 'sqlite3'
 OUT_DB = 'mblite.db'
@@ -131,21 +131,32 @@ def import_dump(dumpfn, dbfn):
     db.commit()
 
 
+def download_url(url, filename):
+    """Download an HTTP URL to a local file."""
+    req = requests.get(url, stream=True)
+    with open(filename, 'wb') as f:
+        for chunk in req.iter_content(chunk_size=1024):
+            f.write(chunk)
+
+
 if __name__ == '__main__':
     mode = sys.argv[1]
     tables_sql = os.path.basename(CREATE_TABLES_PATH)
     indices_sql = os.path.basename(CREATE_INDICES_PATH)
+
     if mode == '--schema':
         for line in convert_createtables(open(tables_sql)):
             sys.stdout.write(line)
         for command in convert_createindices(open(indices_sql)):
             print command + ';'
+
     elif mode == '--init':
         script = ''.join(convert_createtables(open(tables_sql)))
         db = sqlite3.connect(OUT_DB)
         db.executescript(script)
         db.commit()
         db.close()
+
     elif mode == '--import':
         dumpdir = os.path.expanduser(sys.argv[2])
         for basename in os.listdir(dumpdir):
@@ -153,6 +164,7 @@ if __name__ == '__main__':
                 fn = os.path.join(dumpdir, basename)
                 print 'importing: %s' % basename
                 import_dump(fn, OUT_DB)
+
     elif mode == '--index':
         commands = convert_createindices(open(indices_sql))
         db = sqlite3.connect(OUT_DB)
@@ -165,10 +177,12 @@ if __name__ == '__main__':
             db.execute(command)
         db.commit()
         db.close()
+
     elif mode == '--fetch-sql':
         for path in (CREATE_TABLES_PATH, CREATE_INDICES_PATH):
             fn = os.path.basename(path)
             url = GIT_URL + path
-            urllib.urlretrieve(url, fn)
+            download_url(url, fn)
+
     else:
         print 'unknown mode'
