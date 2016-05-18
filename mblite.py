@@ -12,28 +12,29 @@ GIT_URL = 'https://github.com/metabrainz/musicbrainz-server/raw/master/'
 CREATE_TABLES_PATH = 'admin/sql/CreateTables.sql'
 CREATE_INDICES_PATH = 'admin/sql/CreateIndexes.sql'
 
+
 def convert_createtables(fh):
     fields = []
     constraints = []
     for line in fh:
         if line.startswith('    '):
             # Inside a table declaration.
-            
+
             # Parse the line.
             line = line.strip()
-            line = re.sub('\s*--.+$', '', line) # strip comments
+            line = re.sub('\s*--.+$', '', line)  # Strip comments.
             if not line:
                 continue
             m = re.match(r'(\S+)\s+(.+?),?$', line)
             if m is None:
                 print repr(line)
             name, kind = m.groups()
-            
+
             # Deal with table constraints.
             if name in ('CONSTRAINT', 'CHECK'):
                 constraints.append('    %s %s' % (name, kind))
                 continue
-            
+
             # Translate a column declaration.
             kind = kind.lower()
             if name == 'id' or 'serial' in kind:
@@ -43,17 +44,17 @@ def convert_createtables(fh):
             elif 'int' in kind:
                 newkind = 'INTEGER'
             elif 'timestamp' in kind or 'date' in kind:
-                newkind = 'INTEGER' #???
+                newkind = 'INTEGER'  # ???
             elif 'bool' in kind:
-                newkind = 'BOOLEAN' # == integer
+                newkind = 'BOOLEAN'  # == integer
             elif 'real' in kind:
                 newkind = 'REAL'
             elif 'cube' in kind:
-                newkind = 'TEXT' # (actually a vector)
+                newkind = 'TEXT'  # Actually a vector.
             else:
                 raise ValueError('unknown kind in %s' % repr(line))
             fields.append('    %s %s' % (name, newkind))
-        
+
         else:
             # Non-declaration line. Probably leave it alone.
             if line.startswith('\\'):
@@ -66,6 +67,7 @@ def convert_createtables(fh):
                 fields = []
                 constraints = []
             yield line
+
 
 def convert_createindices(fh):
     """Given a file-like object referring to an index creation SQL file,
@@ -99,6 +101,7 @@ def convert_createindices(fh):
         if command and command.lower() not in ('begin', 'commit'):
             yield command
 
+
 def import_dump(dumpfn, dbfn):
     # Run the CLI .import command to actually import the data.
     table = os.path.basename(dumpfn)
@@ -113,7 +116,7 @@ def import_dump(dumpfn, dbfn):
         sys.stdout.write(out)
     if err:
         sys.stderr.write(err)
-    
+
     # Now fix up the data. Replace \N marker with null; t and f with
     # 1 and 0.
     db = sqlite3.connect(dbfn)
@@ -126,6 +129,7 @@ def import_dump(dumpfn, dbfn):
             db.execute("UPDATE %s SET %s=(%s is 't');" %
                        (table, field, field))
     db.commit()
+
 
 if __name__ == '__main__':
     mode = sys.argv[1]
