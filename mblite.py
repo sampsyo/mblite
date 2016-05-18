@@ -15,6 +15,7 @@ CREATE_INDICES_PATH = 'admin/sql/CreateIndexes.sql'
 DUMP_URL = 'http://ftp.musicbrainz.org/pub/musicbrainz/data/fullexport/'
 DUMP_LATEST_FILE = 'LATEST'
 DUMP_FILE = 'mbdump.tar.bz2'
+DUMP_DIR = 'mbdump'
 
 
 def convert_createtables(fh):
@@ -152,7 +153,9 @@ def fetch_data():
 
     # Extract it.
     print('extracting archive')
-    subprocess.check_call(['tar', 'xf', DUMP_FILE])
+    if not os.path.exists(DUMP_DIR):
+        os.mkdir(DUMP_DIR)
+    subprocess.check_call(['tar', '-xf', DUMP_FILE, '-C', DUMP_DIR])
 
 
 if __name__ == '__main__':

@@ -27,7 +27,7 @@ To create an SQLite MusicBrainz database, run these commands:
     $ ./mblite.py --fetch-sql
     $ ./mblite.py --fetch-data
     $ ./mblite.py --init
-    $ ./mblite.py --import /path/to/mbdump
+    $ ./mblite.py --import ./mbdump
     $ ./mblite.py --index
 
 Supply the path to the PostgreSQL data dump directory as the argument to the
