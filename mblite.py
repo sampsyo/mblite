@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import re
 import sqlite3
@@ -11,6 +12,9 @@ OUT_DB = 'mblite.db'
 GIT_URL = 'https://github.com/metabrainz/musicbrainz-server/raw/master/'
 CREATE_TABLES_PATH = 'admin/sql/CreateTables.sql'
 CREATE_INDICES_PATH = 'admin/sql/CreateIndexes.sql'
+DUMP_URL = 'http://ftp.musicbrainz.org/pub/musicbrainz/data/fullexport/'
+DUMP_LATEST_FILE = 'LATEST'
+DUMP_FILE = 'mbdump.tar.bz2'
 
 
 def convert_createtables(fh):
@@ -27,7 +31,7 @@ def convert_createtables(fh):
                 continue
             m = re.match(r'(\S+)\s+(.+?),?$', line)
             if m is None:
-                print repr(line)
+                print(repr(line))
             name, kind = m.groups()
 
             # Deal with table constraints.
@@ -139,6 +143,18 @@ def download_url(url, filename):
             f.write(chunk)
 
 
+def fetch_data():
+    # Download the mbdump archive.
+    dirname = requests.get(DUMP_URL + DUMP_LATEST_FILE).text
+    dump_url = DUMP_URL + dirname + '/' + DUMP_FILE
+    print('downloading:', dump_url)
+    download_url(dump_url, DUMP_FILE)
+
+    # Extract it.
+    print('extracting archive')
+    subprocess.check_call(['tar', 'xf', DUMP_FILE])
+
+
 if __name__ == '__main__':
     mode = sys.argv[1]
     tables_sql = os.path.basename(CREATE_TABLES_PATH)
@@ -148,7 +164,7 @@ if __name__ == '__main__':
         for line in convert_createtables(open(tables_sql)):
             sys.stdout.write(line)
         for command in convert_createindices(open(indices_sql)):
-            print command + ';'
+            print(command + ';')
 
     elif mode == '--init':
         script = ''.join(convert_createtables(open(tables_sql)))
@@ -162,7 +178,7 @@ if __name__ == '__main__':
         for basename in os.listdir(dumpdir):
             if not basename.startswith('.'):
                 fn = os.path.join(dumpdir, basename)
-                print 'importing: %s' % basename
+                print('importing: %s' % basename)
                 import_dump(fn, OUT_DB)
 
     elif mode == '--index':
@@ -171,9 +187,9 @@ if __name__ == '__main__':
         for command in commands:
             name_match = re.search(r' INDEX\s+(\S*)', command)
             if name_match:
-                print 'indexing: %s' % name_match.group(1)
+                print('indexing: %s' % name_match.group(1))
             else:
-                print 'executing: %s' % command
+                print('executing: %s' % command)
             db.execute(command)
         db.commit()
         db.close()
@@ -184,5 +200,8 @@ if __name__ == '__main__':
             url = GIT_URL + path
             download_url(url, fn)
 
+    elif mode == '--fetch-data':
+        fetch_data()
+
     else:
-        print 'unknown mode'
+        print('unknown mode')
