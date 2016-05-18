@@ -28,13 +28,14 @@ def convert_createtables(fh):
 
             # Skip CHECK constraints, which can span multiple lines in
             # parentheses.
+            sline = line.strip()
             if paren_depth:
-                if line.strip() == '(':
-                    paren_depth += 1
-                elif line.strip() == ')' or line.strip() == '),':
+                if sline.startswith(')') or sline == '),':
                     paren_depth -= 1
+                if sline.endswith('('):
+                    paren_depth += 1
                 continue
-            if line.strip().endswith('CHECK ('):
+            if sline.endswith('CHECK ('):
                 paren_depth += 1
                 continue
 
@@ -46,7 +47,7 @@ def convert_createtables(fh):
             m = re.match(r'(\S+)\s+(.+?),?$', line)
             if m is None:
                 print('bad line:', repr(line))
-                continue
+                return
             name, kind = m.groups()
 
             # Deal with table constraints.
