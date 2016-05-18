@@ -20,9 +20,22 @@ DUMP_FILE = 'mbdump.tar.bz2'
 def convert_createtables(fh):
     fields = []
     constraints = []
+    paren_depth = 0
     for line in fh:
         if line.startswith('    '):
             # Inside a table declaration.
+
+            # Skip CHECK constraints, which can span multiple lines in
+            # parentheses.
+            if paren_depth:
+                if line.strip() == '(':
+                    paren_depth += 1
+                elif line.strip() == ')' or line.strip() == '),':
+                    paren_depth -= 1
+                continue
+            if line.strip().endswith('CHECK ('):
+                paren_depth += 1
+                continue
 
             # Parse the line.
             line = line.strip()
@@ -31,7 +44,8 @@ def convert_createtables(fh):
                 continue
             m = re.match(r'(\S+)\s+(.+?),?$', line)
             if m is None:
-                print(repr(line))
+                print('bad line:', repr(line))
+                continue
             name, kind = m.groups()
 
             # Deal with table constraints.
@@ -55,6 +69,10 @@ def convert_createtables(fh):
                 newkind = 'REAL'
             elif 'cube' in kind:
                 newkind = 'TEXT'  # Actually a vector.
+            elif 'fluency' in kind:
+                newkind = 'TEXT'  # An enum.
+            elif 'time' in kind:
+                newkind = 'INTEGER'
             else:
                 raise ValueError('unknown kind in %s' % repr(line))
             fields.append('    %s %s' % (name, newkind))
