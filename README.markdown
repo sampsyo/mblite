@@ -22,10 +22,10 @@ designed to support frequent, concurrent writes.
 Creating a Database
 -------------------
 
-To create an SQLite MusicBrainz database, first fetch a recent `mbdump` [from
-the horse's mouth][mbdownload]. Then run these commands:
+To create an SQLite MusicBrainz database, run these commands:
 
     $ ./mblite.py --fetch-sql
+    $ ./mblite.py --fetch-data
     $ ./mblite.py --init
     $ ./mblite.py --import /path/to/mbdump
     $ ./mblite.py --index
@@ -51,7 +51,6 @@ Things to do next:
   * Implement a library for querying the database.
   * Implement a clone of the MusicBrainz XML Web service that uses the SQLite
     database as a backend?
-  * Automatically fetch the latest snapshot.
 
 Credits
 -------
