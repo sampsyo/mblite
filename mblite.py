@@ -73,6 +73,8 @@ def convert_createtables(fh):
                 newkind = 'TEXT'  # Actually a vector.
             elif 'time' in kind:
                 newkind = 'INTEGER'
+            elif 'jsonb' in kind:
+                newkind = 'BLOB'
             else:
                 # A user-defined type?
                 for type in types:
